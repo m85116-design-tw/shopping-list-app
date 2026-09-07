@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="出國採買用的手機清單原型，可收集社群連結、商品截圖、店家備註與價格比較。"
+    />
+    <title>採買口袋清單</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800;900&family=Quicksand:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-mode="home">
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Japan trip pocket list</p>
+          <h1>採買口袋清單</h1>
+        </div>
+        <button class="ghost-button home-button" type="button" data-mode-target="home" aria-label="回首頁">
+          <iconify-icon icon="lucide:home"></iconify-icon>
+          <span>首頁</span>
+        </button>
+      </header>
+
+      <section class="mode-screen is-active" id="home-screen" aria-labelledby="home-title">
+        <div class="hero-copy">
+          <div class="home-mark" aria-hidden="true">
+            <iconify-icon icon="lucide:shopping-bag"></iconify-icon>
+            <span><iconify-icon icon="lucide:heart"></iconify-icon></span>
+          </div>
+          <h2 id="home-title">採買口袋清單</h2>
+          <p class="home-subtitle">採購助手</p>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card import" type="button" data-mode-target="import">
+            <i class="mode-icon"><iconify-icon icon="lucide:luggage"></iconify-icon></i>
+            <span>出發前</span>
+            <strong>匯入整理</strong>
+            <small>蒐集商品</small>
+          </button>
+          <button class="mode-card shop" type="button" data-mode-target="shop">
+            <i class="mode-icon"><iconify-icon icon="lucide:store"></iconify-icon></i>
+            <span>到店內</span>
+            <strong>採買中</strong>
+            <small>現場採買</small>
+          </button>
+        </div>
+      </section>
+
+      <section class="mode-screen" id="import-screen" aria-labelledby="import-title">
+        <div class="screen-heading">
+          <div>
+            <p class="eyebrow">Prepare</p>
+            <h2 id="import-title">匯入整理</h2>
+          </div>
+          <button class="ghost-button" id="reset-button" type="button">重置範例</button>
+        </div>
+
+        <div class="import-actions" aria-label="匯入方式">
+          <div class="paste-image-control" id="paste-image-control">
+            <div>
+              <strong>貼上圖片</strong>
+              <span>在相簿或網頁先複製截圖/商品圖，再回來貼上。</span>
+            </div>
+            <button class="solid-button" id="paste-image-button" type="button">讀取剪貼簿圖片</button>
+            <div
+              class="paste-target"
+              id="image-paste-target"
+              role="textbox"
+              tabindex="0"
+              contenteditable="true"
+              aria-label="貼上圖片區"
+            >
+              點這裡後長按貼上圖片
+            </div>
+            <p class="paste-status" id="paste-status" role="status" aria-live="polite">
+              如果按鈕沒反應，請點上方貼上區後長按貼上。
+            </p>
+          </div>
+          <button type="button" id="paste-url-button">
+            <strong>貼上網址</strong>
+            <span>把 IG、Threads、文章連結先存起來</span>
+          </button>
+          <button type="button" id="manual-add-button">
+            <strong>手動新增</strong>
+            <span>直接輸入商品與找貨備註</span>
+          </button>
+          <div class="import-file-control" id="upload-shot-control">
+            <strong>備援：從檔案選圖</strong>
+            <span>如果 ChatGPT 內建瀏覽器會跳開，請優先用上方貼上圖片。</span>
+            <input id="screenshot-input" type="file" accept="image/*" />
+          </div>
+        </div>
+
+        <form class="item-form" id="item-form">
+          <div class="screenshot-preview full-field" id="screenshot-preview" hidden>
+            <img id="screenshot-thumb" src="" alt="已選擇的商品截圖預覽" />
+            <div>
+              <strong id="screenshot-name">已選擇截圖</strong>
+              <span>填完商品資訊後，截圖會一起放進採買卡。</span>
+            </div>
+            <button class="ghost-button" id="clear-screenshot-button" type="button">移除</button>
+          </div>
+
+          <label class="full-field">
+            貼上來源或備註
+            <input id="source-input" name="source" type="text" placeholder="IG 連結、Threads、截圖說明、朋友推薦" />
+          </label>
+
+          <label>
+            商品名稱
+            <input id="title-input" name="title" type="text" placeholder="例：休足時間腿部舒緩貼" required />
+          </label>
+
+          <label>
+            店家
+            <select id="store-input" name="store">
+              <option value="donki">唐吉軻德</option>
+              <option value="drug">藥妝店</option>
+              <option value="market">超市</option>
+            </select>
+          </label>
+
+          <label>
+            類別
+            <select id="category-input" name="category">
+              <option value="health">保健藥妝</option>
+              <option value="beauty">美妝保養</option>
+              <option value="snack">食品伴手禮</option>
+              <option value="kids">育兒日用品</option>
+            </select>
+          </label>
+
+          <label>
+            蒐集價
+            <input id="base-price-input" name="basePrice" type="number" inputmode="numeric" placeholder="¥" />
+          </label>
+
+          <label>
+            優先度
+            <select id="priority-input" name="priority">
+              <option value="must">必買</option>
+              <option value="maybe">看價格</option>
+            </select>
+          </label>
+
+          <label class="full-field">
+            找貨備註
+            <textarea id="note-input" name="note" rows="3" placeholder="包裝顏色、貨架位置、替代店家、要買幾個"></textarea>
+          </label>
+
+          <button class="solid-button full-field" type="submit">加入採買清單</button>
+          <p class="form-toast full-field" id="form-toast" role="status" aria-live="polite"></p>
+        </form>
+
+        <section class="draft-list-section" aria-labelledby="draft-title">
+          <div class="section-heading">
+            <h2 id="draft-title">最近加入</h2>
+            <span id="draft-count">0 件</span>
+          </div>
+          <div class="draft-list" id="draft-list"></div>
+        </section>
+      </section>
+
+      <section class="mode-screen" id="shop-screen" aria-labelledby="shop-title">
+        <div class="store-step">
+          <div class="store-step-head">
+            <div>
+              <p class="eyebrow">Shopping</p>
+              <h2 id="shop-title">先選今天的店</h2>
+              <p id="selected-store-copy">選好店家後，下方才會顯示該店的搜尋、篩選與採買卡片。</p>
+            </div>
+            <div class="progress-ring" aria-label="已買 0 件，共 0 件">
+              <span id="done-count">0</span>/<span id="total-count">0</span>
+            </div>
+          </div>
+
+          <div class="store-picker" id="store-filters" aria-label="選擇或切換商店">
+            <button class="store-option" type="button" data-store="donki">
+              <strong>唐吉軻德</strong>
+              <span data-store-count="donki">0 件</span>
+            </button>
+            <button class="store-option" type="button" data-store="drug">
+              <strong>藥妝店</strong>
+              <span data-store-count="drug">0 件</span>
+            </button>
+            <button class="store-option" type="button" data-store="market">
+              <strong>超市</strong>
+              <span data-store-count="market">0 件</span>
+            </button>
+            <button class="store-option" type="button" data-store="all">
+              <strong>全部店家</strong>
+              <span data-store-count="all">0 件</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="shop-controls" aria-label="採買清單工具" hidden>
+          <label class="search-box">
+            <span>搜尋</span>
+            <input id="search-input" type="search" placeholder="商品名、備註、來源" />
+          </label>
+
+          <div class="filter-group" aria-label="商品類別篩選">
+            <span>商品類別</span>
+            <div class="chip-row" id="category-filters">
+              <button class="chip is-active" type="button" data-category="all">全部</button>
+              <button class="chip" type="button" data-category="health">保健藥妝</button>
+              <button class="chip" type="button" data-category="beauty">美妝保養</button>
+              <button class="chip" type="button" data-category="snack">食品伴手禮</button>
+              <button class="chip" type="button" data-category="kids">育兒日用品</button>
+            </div>
+          </div>
+
+          <div class="view-row">
+            <label class="toggle-row">
+              <input id="must-toggle" type="checkbox" />
+              <span>只看必買</span>
+            </label>
+            <div class="view-toggle" aria-label="看板形式">
+              <button class="is-active" type="button" data-view="list">清單</button>
+              <button type="button" data-view="grid">圖卡</button>
+            </div>
+          </div>
+        </div>
+
+        <section class="share-panel" aria-labelledby="share-title" hidden>
+          <div class="share-heading">
+            <div>
+              <p class="eyebrow">Share</p>
+              <h3 id="share-title">分享清單</h3>
+            </div>
+            <button class="solid-button" id="share-button" type="button">分享</button>
+          </div>
+          <div class="share-modes" id="share-modes" aria-label="分享模式">
+            <button class="is-active" type="button" data-share-mode="collab">共同採買</button>
+            <button type="button" data-share-mode="finder">協助尋找</button>
+            <button type="button" data-share-mode="readonly">只讀清單</button>
+          </div>
+          <p id="share-mode-copy">同行者可以看到採買進度，也能一起勾選已買商品。</p>
+          <label class="share-link">
+            分享連結
+            <input id="share-link" type="text" value="" readonly />
+          </label>
+          <p class="toast" id="share-toast" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="list-section" aria-labelledby="list-title" hidden>
+          <div class="section-heading">
+            <h2 id="list-title">待買商品</h2>
+            <span id="visible-count">0 件</span>
+          </div>
+          <div class="shopping-list" id="shopping-list" data-view="list"></div>
+          <div class="empty-state" id="empty-state" hidden>
+            <strong>目前沒有符合的商品</strong>
+            <p id="empty-copy">先選上方商店，再開始找商品。</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="image-viewer" id="image-viewer" role="dialog" aria-modal="true" aria-labelledby="image-viewer-title" hidden>
+      <div class="image-viewer-backdrop" data-action="close-image-viewer"></div>
+      <div class="image-viewer-panel">
+        <div class="image-viewer-head">
+          <h2 id="image-viewer-title">商品圖片</h2>
+          <button class="ghost-button" id="close-image-viewer" type="button">關閉</button>
+        </div>
+        <img id="image-viewer-img" src="" alt="" />
+        <p id="image-viewer-caption"></p>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
