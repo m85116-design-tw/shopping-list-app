@@ -189,7 +189,11 @@ const draftCount = document.querySelector("#draft-count");
 const resetButton = document.querySelector("#reset-button");
 const storeFilters = Array.from(document.querySelectorAll("#store-filters .store-option"));
 const categoryFilters = Array.from(document.querySelectorAll("#category-filters .chip"));
-const viewButtons = Array.from(document.querySelectorAll("[data-view]"));
+// 一定要限定 .view-toggle 底下的 button：清單容器 #shopping-list 自己也有 data-view 屬性
+// (renderCards 會寫 list.dataset.view 給 CSS 用)，只寫 [data-view] 會連容器一起抓進來，
+// 等於幫整個清單綁上「切換檢視」的點擊監聽器 —— 點清單裡任何東西都會觸發整份重繪，
+// 打勾框會在瀏覽器送出 change 事件前就被換掉，導致打勾完全沒反應。
+const viewButtons = Array.from(document.querySelectorAll(".view-toggle button[data-view]"));
 const shareModeButtons = Array.from(document.querySelectorAll("[data-share-mode]"));
 const list = document.querySelector("#shopping-list");
 const searchInput = document.querySelector("#search-input");
