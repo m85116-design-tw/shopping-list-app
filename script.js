@@ -1,4 +1,33 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBCOgMbtce61IP8sQO6awbvkeLvhXoss1Y",
+  authDomain: "shopping-list-75450.firebaseapp.com",
+  projectId: "shopping-list-75450",
+  storageBucket: "shopping-list-75450.firebasestorage.app",
+  messagingSenderId: "486923603984",
+  appId: "1:486923603984:web:2f8bee3e37260c9864fa95",
+};
+const db = getFirestore(initializeApp(firebaseConfig));
+
 const STORAGE_KEY = "pocket-shopping-list-v4";
+const LIST_ID_KEY = "pocket-shopping-list-id";
+
+// 清單身分：有 ?list= 就是加入別人分享的清單(寫回同一份雲端文件)，
+// 沒有就是自己的清單(第一次造訪會產生一組 id 存在 localStorage)。
+// ?mode=readonly 才是「只讀」的唯一依據，跟共同採買/只讀的 UI 切換分開判斷。
+const urlParams = new URLSearchParams(window.location.search);
+const sharedListId = urlParams.get("list");
+const isOwner = !sharedListId;
+const listId = sharedListId || localStorage.getItem(LIST_ID_KEY) || crypto.randomUUID();
+if (isOwner) localStorage.setItem(LIST_ID_KEY, listId);
+const listDocRef = doc(db, "lists", listId);
 
 const stores = {
   all: "全部店家",
@@ -16,8 +45,8 @@ const categories = {
 };
 
 const shareModes = {
-  collab: "同行者可以看到這一刻的採買進度，打開後也能在自己的手機上勾選。",
-  readonly: "只分享購物清單和備註，對方打開後不能更動採買狀態。",
+  collab: "同行者打開連結能即時看到採買進度，也能在自己的手機上一起勾選、更新。",
+  readonly: "同行者能即時看到採買進度，但不能更動任何狀態。",
 };
 
 const shareModeLabels = {
@@ -191,32 +220,37 @@ function cloneSampleItems() {
   return sampleItems.map((item) => ({ ...item }));
 }
 
+function docPayload() {
+  return {
+    items: state.items,
+    activeCategory: state.activeCategory,
+    activeShareMode: state.activeShareMode,
+    view: state.view,
+  };
+}
+
 function saveState() {
   if (state.readonly) return;
 
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        items: state.items,
-        activeCategory: state.activeCategory,
-        activeShareMode: state.activeShareMode,
-        view: state.view,
-      }),
-    );
-  } catch (error) {
-    const slimItems = state.items.map(({ imageDataUrl, ...item }) => item);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        items: slimItems,
-        activeCategory: state.activeCategory,
-        activeShareMode: state.activeShareMode,
-        view: state.view,
-      }),
-    );
-    formToast.textContent = "圖片暫存空間不足，已先保存文字清單";
+  if (isOwner) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(docPayload()));
+    } catch (error) {
+      const slimItems = state.items.map(({ imageDataUrl, ...item }) => item);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...docPayload(), items: slimItems }));
+      formToast.textContent = "圖片暫存空間不足，已先保存文字清單";
+    }
   }
+
+  // ponytail: 圖片直接塞進 Firestore 文件(跟原本 localStorage 的做法一樣)，
+  // 單一文件上限 1MiB，圖片多了會寫入失敗。先重試一次(去掉圖片)，
+  // 之後如果常常爆量，再改成 Cloud Storage 存圖、文件只存網址。
+  setDoc(listDocRef, docPayload()).catch(() => {
+    const slimPayload = { ...docPayload(), items: state.items.map(({ imageDataUrl, ...item }) => item) };
+    setDoc(listDocRef, slimPayload).catch(() => {
+      formToast.textContent = "雲端同步失敗，已先保存在本機";
+    });
+  });
 }
 
 function loadState() {
@@ -238,41 +272,22 @@ function loadState() {
   }
 }
 
-function encodeSnapshot() {
-  const snapshot = {
-    items: state.items.map(({ imageDataUrl, ...item }) => item),
-    store: state.activeStore,
-    category: state.activeCategory,
-    shareMode: state.activeShareMode,
-    view: state.view,
-  };
-  const json = encodeURIComponent(JSON.stringify(snapshot));
-  return btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
+function applyCloudSnapshot(snapshot) {
+  // 自己剛寫入、還沒被伺服器確認的那次回呼要跳過，
+  // 不然打字打到一半(現場價)畫面會被自己的舊值蓋掉、輸入框失焦。
+  if (snapshot.metadata.hasPendingWrites) return;
 
-function decodeSnapshot(value) {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-  return JSON.parse(decodeURIComponent(atob(padded)));
-}
-
-function loadShareStateFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const snapshot = params.get("snapshot");
-
-  if (!snapshot) return;
-
-  try {
-    const parsed = decodeSnapshot(snapshot);
-    if (Array.isArray(parsed.items)) state.items = parsed.items;
-    if (stores[parsed.store]) state.activeStore = parsed.store;
-    if (categories[parsed.category]) state.activeCategory = parsed.category;
-    if (shareModes[parsed.shareMode]) state.activeShareMode = parsed.shareMode;
-    if (["list", "grid"].includes(parsed.view)) state.view = parsed.view;
-    state.readonly = parsed.shareMode === "readonly";
-  } catch (error) {
-    shareToast.textContent = "分享連結讀取失敗，已顯示本機清單";
+  const data = snapshot.data();
+  if (!data) {
+    if (isOwner) setDoc(listDocRef, docPayload()).catch(() => {});
+    return;
   }
+
+  if (Array.isArray(data.items)) state.items = data.items;
+  if (categories[data.activeCategory]) state.activeCategory = data.activeCategory;
+  if (shareModes[data.activeShareMode]) state.activeShareMode = data.activeShareMode;
+  if (["list", "grid"].includes(data.view)) state.view = data.view;
+  render();
 }
 
 function showMode(mode) {
@@ -462,7 +477,8 @@ function updateSelectedStore() {
 
 function updateSharePanel() {
   const params = new URLSearchParams();
-  params.set("snapshot", encodeSnapshot());
+  params.set("list", listId);
+  if (state.activeShareMode === "readonly") params.set("mode", "readonly");
   shareModeCopy.textContent = shareModes[state.activeShareMode];
   shareLink.value = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 }
@@ -639,6 +655,7 @@ resetButton.addEventListener("click", () => {
   localStorage.removeItem(STORAGE_KEY);
   formToast.textContent = "已重置為範例清單";
   render();
+  saveState();
 });
 
 pasteUrlButton.addEventListener("click", () => {
@@ -902,6 +919,16 @@ shareButton.addEventListener("click", async () => {
 searchInput.addEventListener("input", renderCards);
 mustToggle.addEventListener("change", renderCards);
 
-loadState();
-loadShareStateFromUrl();
+state.readonly = urlParams.get("mode") === "readonly";
+
+if (isOwner) {
+  loadState();
+} else {
+  state.items = [];
+}
+
 render();
+
+onSnapshot(listDocRef, applyCloudSnapshot, () => {
+  formToast.textContent = "雲端同步失敗，目前顯示本機清單";
+});
