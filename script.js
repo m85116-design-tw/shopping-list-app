@@ -874,6 +874,11 @@ list.addEventListener("click", (event) => {
     return;
   }
 
+  // 打勾(done)跟現場價輸入框(spot-price)各自有專屬的 change／input 監聽器處理。
+  // 這裡如果還往下跑 render()，會在瀏覽器處理完打勾/輸入框 focus 前就把整個
+  // DOM 換掉，導致打勾失效、輸入框點了沒反應。
+  if (action === "done" || action === "spot-price") return;
+
   if (state.readonly) return;
 
   if (action === "help") {
