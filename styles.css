@@ -2225,9 +2225,16 @@ h3,
   top: 12px;
   right: 12px;
   z-index: 2;
+  min-height: 40px;
+  padding: 8px 12px;
   background: rgba(255, 250, 245, 0.94);
   color: var(--muted);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.check-wrap input {
+  width: 20px;
+  height: 20px;
 }
 
 .shopping-list[data-view="grid"] .check-wrap span {

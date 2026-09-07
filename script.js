@@ -523,6 +523,7 @@ function renderCards() {
     .map((item) => {
       const delta = getPriceDelta(item);
       const disabled = state.readonly ? "disabled" : "";
+      const helpDisabled = state.readonly || item.done ? "disabled" : "";
       return `
         <article class="item-card ${item.done ? "is-done" : ""}" data-id="${item.id}">
           <label class="check-wrap">
@@ -557,7 +558,7 @@ function renderCards() {
               <div class="delta ${delta.tone}">${delta.text}</div>
             </div>
             <div class="card-actions">
-              <button type="button" ${disabled} data-action="help">${item.help ? "取消協尋" : "請同行者找"}</button>
+              <button type="button" ${helpDisabled} data-action="help">${item.help ? "取消協尋" : "請同行者找"}</button>
             </div>
           </div>
         </article>
