@@ -17,13 +17,11 @@ const categories = {
 
 const shareModes = {
   collab: "同行者可以看到這一刻的採買進度，打開後也能在自己的手機上勾選。",
-  finder: "適合分頭找貨，分享內容會優先列出還沒買到、需要協助尋找的商品。",
   readonly: "只分享購物清單和備註，對方打開後不能更動採買狀態。",
 };
 
 const shareModeLabels = {
   collab: "共同採買",
-  finder: "協助尋找",
   readonly: "只讀清單",
 };
 
@@ -130,7 +128,7 @@ const sampleItems = [
 
 const state = {
   items: [],
-  activeStore: "",
+  activeStore: "all",
   activeCategory: "all",
   activeShareMode: "collab",
   view: "grid",
@@ -233,7 +231,7 @@ function loadState() {
     const parsed = JSON.parse(stored);
     state.items = Array.isArray(parsed.items) && parsed.items.length ? parsed.items : cloneSampleItems();
     state.activeCategory = parsed.activeCategory || "all";
-    state.activeShareMode = parsed.activeShareMode || "collab";
+    state.activeShareMode = shareModes[parsed.activeShareMode] ? parsed.activeShareMode : "collab";
     state.view = parsed.view || "grid";
   } catch (error) {
     state.items = cloneSampleItems();
@@ -472,10 +470,7 @@ function updateSharePanel() {
 function buildShareText() {
   const scopedItems = getScopedItems();
   const done = scopedItems.filter((item) => item.done).length;
-  const targetItems =
-    state.activeShareMode === "finder"
-      ? scopedItems.filter((item) => !item.done && item.help)
-      : scopedItems.filter((item) => !item.done);
+  const targetItems = scopedItems.filter((item) => !item.done);
   const remainingText = targetItems.length
     ? targetItems.map((item) => `${item.title}（${categories[item.category]}）`).join("、")
     : "目前沒有待買商品";
@@ -637,7 +632,7 @@ itemForm.addEventListener("submit", (event) => {
 resetButton.addEventListener("click", () => {
   if (state.readonly) return;
   state.items = cloneSampleItems();
-  state.activeStore = "";
+  state.activeStore = "all";
   state.activeCategory = "all";
   state.activeShareMode = "collab";
   state.view = "grid";
