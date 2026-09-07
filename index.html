@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <link rel="stylesheet" href="./styles.css?v=5" />
+    <link rel="stylesheet" href="./styles.css?v=6" />
   </head>
   <body data-mode="home">
     <main class="app-shell">
@@ -123,11 +123,8 @@
 
           <label>
             店家
-            <select id="store-input" name="store">
-              <option value="donki">唐吉軻德</option>
-              <option value="drug">藥妝店</option>
-              <option value="market">超市</option>
-            </select>
+            <!-- 選項由 script.js 的 renderStoreOptions() 動態產生（含自定義店家） -->
+            <select id="store-input" name="store"></select>
           </label>
 
           <label>
@@ -184,24 +181,8 @@
             </div>
           </div>
 
-          <div class="store-picker" id="store-filters" aria-label="選擇或切換商店">
-            <button class="store-option" type="button" data-store="donki">
-              <strong>唐吉軻德</strong>
-              <span data-store-count="donki">0 件</span>
-            </button>
-            <button class="store-option" type="button" data-store="drug">
-              <strong>藥妝店</strong>
-              <span data-store-count="drug">0 件</span>
-            </button>
-            <button class="store-option" type="button" data-store="market">
-              <strong>超市</strong>
-              <span data-store-count="market">0 件</span>
-            </button>
-            <button class="store-option" type="button" data-store="all">
-              <strong>全部店家</strong>
-              <span data-store-count="all">0 件</span>
-            </button>
-          </div>
+          <!-- 按鈕由 script.js 的 renderStoreFilters() 動態產生（含自定義店家），這裡留空即可 -->
+          <div class="store-picker" id="store-filters" aria-label="選擇或切換商店"></div>
         </div>
 
         <div class="shop-controls" aria-label="採買清單工具" hidden>
@@ -267,6 +248,23 @@
       </section>
     </main>
 
+    <div class="image-viewer" id="add-store-dialog" role="dialog" aria-modal="true" aria-labelledby="add-store-title" hidden>
+      <div class="image-viewer-backdrop" data-action="close-add-store"></div>
+      <div class="image-viewer-panel">
+        <div class="image-viewer-head">
+          <h2 id="add-store-title">新增店家</h2>
+          <button class="ghost-button" id="close-add-store" type="button">關閉</button>
+        </div>
+        <form class="item-form" id="add-store-form">
+          <label class="full-field">
+            店家名稱
+            <input id="new-store-name-input" name="storeName" type="text" placeholder="例：超商、藥局、outlet" maxlength="12" required />
+          </label>
+          <button class="solid-button full-field" type="submit">加入店家</button>
+        </form>
+      </div>
+    </div>
+
     <div class="image-viewer" id="image-viewer" role="dialog" aria-modal="true" aria-labelledby="image-viewer-title" hidden>
       <div class="image-viewer-backdrop" data-action="close-image-viewer"></div>
       <div class="image-viewer-panel">
@@ -279,6 +277,6 @@
       </div>
     </div>
 
-    <script type="module" src="./script.js?v=5"></script>
+    <script type="module" src="./script.js?v=6"></script>
   </body>
 </html>

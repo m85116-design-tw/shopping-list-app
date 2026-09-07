@@ -157,12 +157,24 @@ const sampleItems = [
 
 const state = {
   items: [],
+  customStores: [],
   activeStore: "all",
   activeCategory: "all",
   activeShareMode: "collab",
   view: "grid",
   readonly: false,
 };
+
+// 自定義店家跟清單一起同步(存在 state.customStores、寫進 docPayload)，
+// 這裡順便把名字併進 stores 這個查表物件，item.store / getFilteredItems 等既有查詢不用改。
+function applyCustomStores(list) {
+  state.customStores = Array.isArray(list)
+    ? list.filter((store) => store && typeof store.id === "string" && typeof store.name === "string")
+    : [];
+  state.customStores.forEach((store) => {
+    stores[store.id] = store.name;
+  });
+}
 
 const modeButtons = Array.from(document.querySelectorAll("[data-mode-target]"));
 const screens = {
@@ -187,7 +199,12 @@ const formToast = document.querySelector("#form-toast");
 const draftList = document.querySelector("#draft-list");
 const draftCount = document.querySelector("#draft-count");
 const resetButton = document.querySelector("#reset-button");
-const storeFilters = Array.from(document.querySelectorAll("#store-filters .store-option"));
+const storeFilterList = document.querySelector("#store-filters");
+const storeInput = document.querySelector("#store-input");
+const addStoreDialog = document.querySelector("#add-store-dialog");
+const addStoreForm = document.querySelector("#add-store-form");
+const newStoreNameInput = document.querySelector("#new-store-name-input");
+const closeAddStoreButton = document.querySelector("#close-add-store");
 const categoryFilters = Array.from(document.querySelectorAll("#category-filters .chip"));
 // 一定要限定 .view-toggle 底下的 button：清單容器 #shopping-list 自己也有 data-view 屬性
 // (renderCards 會寫 list.dataset.view 給 CSS 用)，只寫 [data-view] 會連容器一起抓進來，
@@ -227,6 +244,7 @@ function cloneSampleItems() {
 function docPayload() {
   return {
     items: state.items,
+    customStores: state.customStores,
     activeCategory: state.activeCategory,
     activeShareMode: state.activeShareMode,
     view: state.view,
@@ -268,6 +286,7 @@ function loadState() {
   try {
     const parsed = JSON.parse(stored);
     state.items = Array.isArray(parsed.items) && parsed.items.length ? parsed.items : cloneSampleItems();
+    applyCustomStores(parsed.customStores);
     state.activeCategory = parsed.activeCategory || "all";
     state.activeShareMode = shareModes[parsed.activeShareMode] ? parsed.activeShareMode : "collab";
     state.view = parsed.view || "grid";
@@ -288,6 +307,7 @@ function applyCloudSnapshot(snapshot) {
   }
 
   if (Array.isArray(data.items)) state.items = data.items;
+  applyCustomStores(data.customStores);
   if (categories[data.activeCategory]) state.activeCategory = data.activeCategory;
   if (shareModes[data.activeShareMode]) state.activeShareMode = data.activeShareMode;
   if (["list", "grid"].includes(data.view)) state.view = data.view;
@@ -444,6 +464,41 @@ function setActiveButton(buttons, value, key) {
   });
 }
 
+function renderStoreFilters() {
+  const orderedIds = ["donki", "drug", "market", ...state.customStores.map((store) => store.id), "all"];
+  const optionsHtml = orderedIds
+    .map(
+      (id) => `
+        <button class="store-option" type="button" data-store="${id}">
+          <strong>${escapeHtml(stores[id])}</strong>
+          <span data-store-count="${id}">0 件</span>
+        </button>`,
+    )
+    .join("");
+  const addButtonHtml = `
+        <button class="store-option store-option-add" type="button" id="add-store-button" ${state.readonly ? "disabled" : ""}>
+          <iconify-icon icon="lucide:plus-circle"></iconify-icon>
+          <strong>新增店家</strong>
+        </button>`;
+  storeFilterList.innerHTML = optionsHtml + addButtonHtml;
+}
+
+function renderStoreOptions() {
+  storeInput.innerHTML = ["donki", "drug", "market", ...state.customStores.map((store) => store.id)]
+    .map((id) => `<option value="${id}">${escapeHtml(stores[id])}</option>`)
+    .join("");
+}
+
+function openAddStoreDialog() {
+  addStoreDialog.hidden = false;
+  newStoreNameInput.value = "";
+  newStoreNameInput.focus();
+}
+
+function closeAddStoreDialog() {
+  addStoreDialog.hidden = true;
+}
+
 function updateStoreCounts() {
   const countText = (items) => {
     const done = items.filter((item) => item.done).length;
@@ -595,7 +650,9 @@ function renderReadonlyState() {
 }
 
 function render() {
-  setActiveButton(storeFilters, state.activeStore, "store");
+  renderStoreFilters();
+  renderStoreOptions();
+  setActiveButton(Array.from(storeFilterList.querySelectorAll("[data-store]")), state.activeStore, "store");
   setActiveButton(categoryFilters, state.activeCategory, "category");
   setActiveButton(viewButtons, state.view, "view");
   setActiveButton(shareModeButtons, state.activeShareMode, "shareMode");
@@ -812,12 +869,46 @@ modeButtons.forEach((button) => {
   button.addEventListener("click", () => showMode(button.dataset.modeTarget));
 });
 
-storeFilters.forEach((button) => {
-  button.addEventListener("click", () => {
-    state.activeStore = button.dataset.store;
-    saveState();
-    render();
-  });
+// 店家按鈕(含自定義店家)是 renderStoreFilters() 動態產生的，用委派監聽器統一處理，
+// 不用每次重繪都重新綁定。
+storeFilterList.addEventListener("click", (event) => {
+  if (event.target.closest("#add-store-button")) {
+    if (state.readonly) return;
+    openAddStoreDialog();
+    return;
+  }
+
+  const button = event.target.closest("[data-store]");
+  if (!button) return;
+  state.activeStore = button.dataset.store;
+  saveState();
+  render();
+});
+
+closeAddStoreButton.addEventListener("click", closeAddStoreDialog);
+
+addStoreDialog.addEventListener("click", (event) => {
+  if (event.target.dataset.action === "close-add-store") closeAddStoreDialog();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !addStoreDialog.hidden) closeAddStoreDialog();
+});
+
+addStoreForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (state.readonly) return;
+
+  const name = newStoreNameInput.value.trim();
+  if (!name) return;
+
+  const id = `custom-${Date.now().toString(36)}`;
+  state.customStores.push({ id, name });
+  stores[id] = name;
+  state.activeStore = id;
+  closeAddStoreDialog();
+  saveState();
+  render();
 });
 
 categoryFilters.forEach((button) => {

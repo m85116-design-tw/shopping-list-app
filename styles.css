@@ -2135,6 +2135,21 @@ h3,
   color: rgba(255, 255, 255, 0.84);
 }
 
+.store-option-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-style: dashed;
+  border-color: var(--orange);
+  color: var(--orange);
+  background: var(--cream);
+}
+
+.store-option-add iconify-icon {
+  font-size: 1.1rem;
+}
+
 .progress-ring {
   border-color: var(--orange);
   border-left-color: #ffd580;
