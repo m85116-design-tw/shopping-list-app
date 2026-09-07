@@ -40,3 +40,4 @@ python3 -m http.server
 | `innerHTML` 渲染、`data-action` 事件委派的坑、XSS 防護、新增表單欄位要動哪五個地方 | [docs/rendering.md](docs/rendering.md) |
 | CSS 三層 skin、哪一層才是實際生效的 | [docs/css.md](docs/css.md) |
 | 剪貼簿／分享／圖片壓縮等瀏覽器 API 用法 | [docs/browser-apis.md](docs/browser-apis.md) |
+| 跟 Superdesign 視覺稿對齊的進度、還沒做的部分 | [docs/superdesign-handoff.md](docs/superdesign-handoff.md) |
