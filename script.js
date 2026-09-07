@@ -470,6 +470,7 @@ function renderStoreFilters() {
     .map(
       (id) => `
         <button class="store-option" type="button" data-store="${id}">
+          <iconify-icon icon="${id === "all" ? "lucide:layout-grid" : "lucide:store"}"></iconify-icon>
           <strong>${escapeHtml(stores[id])}</strong>
           <span data-store-count="${id}">0 件</span>
         </button>`,
@@ -586,8 +587,13 @@ function renderCards() {
       return `
         <article class="item-card ${item.done ? "is-done" : ""}" data-id="${item.id}">
           <label class="check-wrap">
-            <input type="checkbox" ${item.done ? "checked" : ""} ${disabled} data-action="done" />
-            <span>已買</span>
+            <input
+              type="checkbox"
+              ${item.done ? "checked" : ""}
+              ${disabled}
+              data-action="done"
+              aria-label="標記已買：${escapeHtml(item.title)}"
+            />
           </label>
           <div class="product-shot ${item.imageDataUrl ? "has-image" : item.visual}">
             ${
@@ -598,15 +604,25 @@ function renderCards() {
           </div>
           <div class="item-body">
             <div class="item-title-row">
-              <h3>${escapeHtml(item.title)}</h3>
-              <span class="badge ${item.priority}">${item.priority === "must" ? "必買" : "看價格"}</span>
+              <div class="item-title-main">
+                <h3>${escapeHtml(item.title)}</h3>
+                <span class="badge ${item.priority}">${item.priority === "must" ? "必買" : "看價格"}</span>
+              </div>
+              <button
+                type="button"
+                class="help-toggle ${item.help ? "is-active" : ""}"
+                ${helpDisabled}
+                data-action="help"
+                aria-label="${item.help ? "取消請同行者找" : "請同行者找"}"
+              >
+                <iconify-icon icon="lucide:heart"></iconify-icon>
+              </button>
             </div>
             <p class="note">${escapeHtml(item.note || "尚未填寫找貨備註。")}</p>
             <div class="meta-row">
-              <span>店家：${stores[item.store]}</span>
-              <span>類別：${categories[item.category]}</span>
-              <span>來源：${escapeHtml(item.source || "手動新增")}</span>
-              ${item.help ? "<span>請協尋</span>" : ""}
+              <span>${stores[item.store]}</span>
+              <span>${categories[item.category]}</span>
+              <span class="meta-source">來源:${escapeHtml(item.source || "手動新增")}</span>
             </div>
             <div class="price-row">
               <div><small>蒐集價</small><strong>${formatYen(item.basePrice)}</strong></div>
@@ -615,9 +631,6 @@ function renderCards() {
                 <input class="spot-price" type="number" value="${escapeHtml(item.spotPrice)}" placeholder="輸入" ${disabled} data-action="spot-price" />
               </label>
               <div class="delta ${delta.tone}">${delta.text}</div>
-            </div>
-            <div class="card-actions">
-              <button type="button" ${helpDisabled} data-action="help">${item.help ? "取消協尋" : "請同行者找"}</button>
             </div>
           </div>
         </article>

@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <link rel="stylesheet" href="./styles.css?v=6" />
+    <link rel="stylesheet" href="./styles.css?v=7" />
   </head>
   <body data-mode="home">
     <main class="app-shell">
@@ -186,13 +186,12 @@
         </div>
 
         <div class="shop-controls" aria-label="採買清單工具" hidden>
-          <label class="search-box">
-            <span>搜尋</span>
-            <input id="search-input" type="search" placeholder="商品名、備註、來源" />
+          <label class="search-box" aria-label="搜尋商品">
+            <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
+            <input id="search-input" type="search" placeholder="搜尋商品名、備註、來源" />
           </label>
 
           <div class="filter-group" aria-label="商品類別篩選">
-            <span>商品類別</span>
             <div class="chip-row" id="category-filters">
               <button class="chip is-active" type="button" data-category="all">全部</button>
               <button class="chip" type="button" data-category="health">保健藥妝</button>
@@ -208,8 +207,12 @@
               <span>只看必買</span>
             </label>
             <div class="view-toggle" aria-label="看板形式">
-              <button class="is-active" type="button" data-view="list">清單</button>
-              <button type="button" data-view="grid">圖卡</button>
+              <button class="is-active" type="button" data-view="list" aria-label="清單檢視">
+                <iconify-icon icon="lucide:list"></iconify-icon>
+              </button>
+              <button type="button" data-view="grid" aria-label="圖卡檢視">
+                <iconify-icon icon="lucide:layout-grid"></iconify-icon>
+              </button>
             </div>
           </div>
         </div>
@@ -277,6 +280,6 @@
       </div>
     </div>
 
-    <script type="module" src="./script.js?v=6"></script>
+    <script type="module" src="./script.js?v=7"></script>
   </body>
 </html>

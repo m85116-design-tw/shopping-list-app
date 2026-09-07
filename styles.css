@@ -2124,6 +2124,11 @@ h3,
   color: var(--soft-muted);
 }
 
+.store-option iconify-icon {
+  font-size: 1.3rem;
+  color: var(--orange);
+}
+
 .store-option.is-active {
   border-color: var(--orange);
   color: #fff;
@@ -2133,6 +2138,10 @@ h3,
 
 .store-option.is-active span {
   color: rgba(255, 255, 255, 0.84);
+}
+
+.store-option.is-active iconify-icon {
+  color: #fff;
 }
 
 .store-option-add {
@@ -2183,9 +2192,85 @@ h3,
   color: var(--muted);
 }
 
-.toggle-row input,
+/* 只看必買開關：原生 checkbox 換成軌道+圓點的樣子，change 事件行為完全不變 */
+.toggle-row input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.toggle-row input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.toggle-row input:checked {
+  background: var(--orange);
+}
+
+.toggle-row input:checked::after {
+  transform: translateX(14px);
+}
+
+/* 已買 checkbox：原生 input，只改外觀成圓形勾選鈕 */
 .check-wrap input {
-  accent-color: var(--orange);
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.check-wrap input:checked {
+  border-color: var(--orange);
+  background: var(--orange);
+}
+
+.check-wrap input:checked::after {
+  content: "\2713";
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.search-box {
+  position: relative;
+  display: block;
+}
+
+.search-box iconify-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--soft-muted);
+  font-size: 1.15rem;
+  pointer-events: none;
+}
+
+.search-box input {
+  padding-left: 42px;
 }
 
 .view-toggle {
@@ -2193,6 +2278,14 @@ h3,
   padding: 5px;
   border-radius: 1rem;
   background: var(--cream);
+}
+
+.view-toggle button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  color: var(--muted);
 }
 
 .view-toggle button {
@@ -2224,8 +2317,8 @@ h3,
 }
 
 .item-card {
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 26px 96px minmax(0, 1fr);
+  gap: 10px;
   padding: 14px;
 }
 
@@ -2236,28 +2329,23 @@ h3,
   overflow: hidden;
 }
 
+/* 清單模式：checkbox 是獨立的第一欄（跟圖片、內文並排），不是蓋在圖片上的浮動圓點 */
 .check-wrap {
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-  min-height: 40px;
-  padding: 8px 12px;
-  background: rgba(255, 250, 245, 0.94);
-  color: var(--muted);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.check-wrap input {
-  width: 20px;
-  height: 20px;
-}
-
-.shopping-list[data-view="grid"] .check-wrap span {
+/* 圖卡模式：卡片變單欄，checkbox 改成浮在價格列右下角的圓點（呼應 Superdesign 圖卡的位置） */
+.shopping-list[data-view="grid"] .check-wrap {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
 }
 
 .product-shot {
@@ -2318,9 +2406,41 @@ h3,
   display: grid;
 }
 
+.item-title-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .item-title-row h3 {
+  min-width: 0;
+  overflow: hidden;
   font-size: 0.92rem;
   font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.help-toggle {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--line);
+  font-size: 1.05rem;
+}
+
+.help-toggle.is-active {
+  color: var(--red);
+}
+
+.shopping-list[data-view="grid"] .help-toggle {
+  display: none;
 }
 
 .badge {
@@ -2339,7 +2459,7 @@ h3,
   background: rgba(255, 159, 28, 0.1);
 }
 
-.meta-row span:last-child:nth-child(4) {
+.meta-source {
   color: var(--orange);
   background: var(--cream-strong);
 }
@@ -2348,9 +2468,32 @@ h3,
   gap: 8px;
 }
 
+.shopping-list[data-view="grid"] .note,
+.shopping-list[data-view="grid"] .meta-row,
+.shopping-list[data-view="grid"] .price-row label,
+.shopping-list[data-view="grid"] .price-row .delta {
+  display: none;
+}
+
 .shopping-list[data-view="grid"] .price-row {
-  grid-template-columns: 1fr;
+  display: flex;
+  align-items: center;
   margin-top: 9px;
+  padding-right: 30px;
+}
+
+.shopping-list[data-view="grid"] .price-row > div {
+  background: transparent;
+  padding: 0;
+}
+
+.shopping-list[data-view="grid"] .price-row > div small {
+  display: none;
+}
+
+.shopping-list[data-view="grid"] .price-row strong {
+  color: var(--orange);
+  font-family: "Quicksand", sans-serif;
 }
 
 .spot-price {
