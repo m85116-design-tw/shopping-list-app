@@ -15,19 +15,31 @@
       rel="stylesheet"
     />
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <link rel="stylesheet" href="./styles.css?v=7" />
+    <link rel="stylesheet" href="./styles.css?v=8" />
   </head>
   <body data-mode="home">
     <main class="app-shell">
       <header class="app-header">
-        <div>
-          <p class="eyebrow">Japan trip pocket list</p>
-          <h1>採買口袋清單</h1>
-        </div>
-        <button class="ghost-button home-button" type="button" data-mode-target="home" aria-label="回首頁">
-          <iconify-icon icon="lucide:home"></iconify-icon>
-          <span>首頁</span>
+        <button class="icon-button" id="back-button" type="button" aria-label="返回上一層">
+          <iconify-icon icon="lucide:chevron-left"></iconify-icon>
         </button>
+        <h1 id="header-title">採買口袋清單</h1>
+        <div class="header-actions">
+          <button
+            class="icon-button"
+            id="share-toggle"
+            type="button"
+            aria-label="分享清單"
+            aria-expanded="false"
+            hidden
+          >
+            <iconify-icon icon="lucide:share-2"></iconify-icon>
+          </button>
+          <button class="ghost-button home-button" type="button" data-mode-target="home" aria-label="回首頁">
+            <iconify-icon icon="lucide:home"></iconify-icon>
+            <span>首頁</span>
+          </button>
+        </div>
       </header>
 
       <section class="mode-screen is-active" id="home-screen" aria-labelledby="home-title">
@@ -112,20 +124,27 @@
           </div>
 
           <label class="full-field">
-            貼上來源或備註
-            <input id="source-input" name="source" type="text" placeholder="IG 連結、Threads、截圖說明、朋友推薦" />
-          </label>
-
-          <label>
-            商品名稱
+            <!-- label 是 grid，文字要自己包一層，不然星號會被擠成獨立一列 -->
+            <span>商品名稱 <span class="required">*</span></span>
             <input id="title-input" name="title" type="text" placeholder="例：休足時間腿部舒緩貼" required />
           </label>
 
-          <label>
-            店家
-            <!-- 選項由 script.js 的 renderStoreOptions() 動態產生（含自定義店家） -->
-            <select id="store-input" name="store"></select>
+          <label class="full-field">
+            來源備註
+            <input id="source-input" name="source" type="text" placeholder="IG 連結、Threads、截圖說明、朋友推薦" />
           </label>
+
+          <div class="store-field">
+            <label>
+              店家
+              <!-- 選項由 script.js 的 renderStoreOptions() 動態產生（含自定義店家） -->
+              <select id="store-input" name="store"></select>
+            </label>
+            <button class="field-link" id="form-add-store-button" type="button">
+              <iconify-icon icon="lucide:plus-circle"></iconify-icon>
+              <span>新增自定義店家</span>
+            </button>
+          </div>
 
           <label>
             類別
@@ -139,7 +158,10 @@
 
           <label>
             蒐集價
-            <input id="base-price-input" name="basePrice" type="number" inputmode="numeric" placeholder="¥" />
+            <span class="yen-field">
+              <em>¥</em>
+              <input id="base-price-input" name="basePrice" type="number" inputmode="numeric" placeholder="0" />
+            </span>
           </label>
 
           <label>
@@ -155,7 +177,10 @@
             <textarea id="note-input" name="note" rows="3" placeholder="包裝顏色、貨架位置、替代店家、要買幾個"></textarea>
           </label>
 
-          <button class="solid-button full-field" type="submit">加入採買清單</button>
+          <button class="solid-button full-field" type="submit">
+            <iconify-icon icon="lucide:plus-circle"></iconify-icon>
+            加入採買清單
+          </button>
           <p class="form-toast full-field" id="form-toast" role="status" aria-live="polite"></p>
         </form>
 
@@ -169,12 +194,32 @@
       </section>
 
       <section class="mode-screen" id="shop-screen" aria-labelledby="shop-title">
+        <!-- 分享面板由 header 的分享 icon 開關，預設收起；放在最上方所以展開時會貼著 header -->
+        <section class="share-panel" aria-labelledby="share-title" hidden>
+          <div class="share-heading">
+            <div>
+              <p class="eyebrow">Share</p>
+              <h3 id="share-title">分享清單</h3>
+            </div>
+            <button class="solid-button" id="share-button" type="button">分享</button>
+          </div>
+          <div class="share-modes" id="share-modes" aria-label="分享模式">
+            <button class="is-active" type="button" data-share-mode="collab">共同採買</button>
+            <button type="button" data-share-mode="readonly">只讀清單</button>
+          </div>
+          <p id="share-mode-copy">同行者可以看到採買進度，也能一起勾選已買商品。</p>
+          <label class="share-link">
+            分享連結
+            <input id="share-link" type="text" value="" readonly />
+          </label>
+          <p class="toast" id="share-toast" role="status" aria-live="polite"></p>
+        </section>
+
         <div class="store-step">
           <div class="store-step-head">
             <div>
-              <p class="eyebrow">Shopping</p>
               <h2 id="shop-title">店家範圍</h2>
-              <p id="selected-store-copy">預設顯示全部店家，也可以切換單一店家縮小範圍。</p>
+              <p id="selected-store-copy">選好店家後，才會進到那家店的採買清單。</p>
             </div>
             <div class="progress-ring" aria-label="已買 0 件，共 0 件">
               <span id="done-count">0</span>/<span id="total-count">0</span>
@@ -216,26 +261,6 @@
             </div>
           </div>
         </div>
-
-        <section class="share-panel" aria-labelledby="share-title" hidden>
-          <div class="share-heading">
-            <div>
-              <p class="eyebrow">Share</p>
-              <h3 id="share-title">分享清單</h3>
-            </div>
-            <button class="solid-button" id="share-button" type="button">分享</button>
-          </div>
-          <div class="share-modes" id="share-modes" aria-label="分享模式">
-            <button class="is-active" type="button" data-share-mode="collab">共同採買</button>
-            <button type="button" data-share-mode="readonly">只讀清單</button>
-          </div>
-          <p id="share-mode-copy">同行者可以看到採買進度，也能一起勾選已買商品。</p>
-          <label class="share-link">
-            分享連結
-            <input id="share-link" type="text" value="" readonly />
-          </label>
-          <p class="toast" id="share-toast" role="status" aria-live="polite"></p>
-        </section>
 
         <section class="list-section" aria-labelledby="list-title" hidden>
           <div class="section-heading">
@@ -280,6 +305,6 @@
       </div>
     </div>
 
-    <script type="module" src="./script.js?v=7"></script>
+    <script type="module" src="./script.js?v=8"></script>
   </body>
 </html>

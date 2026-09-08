@@ -2587,3 +2587,117 @@ h3,
     grid-template-columns: 1fr;
   }
 }
+
+/* Superdesign project alignment — 雙層畫面 / 分享 icon / 表單版面 (2026-09-08) */
+.app-header {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+#header-title {
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.icon-button {
+  display: grid;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--orange);
+  background: var(--cream);
+  font-size: 1.35rem;
+  cursor: pointer;
+  transition: transform 0.16s ease;
+}
+
+.icon-button:active {
+  transform: scale(0.92);
+}
+
+/* 分享面板：由 header 的分享 icon 展開，貼在畫面最上方 */
+.share-panel {
+  margin: 0 0 14px;
+}
+
+/* 匯入表單：店家欄位下面掛一個「新增自定義店家」小連結 */
+.store-field {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.field-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  color: var(--orange);
+  background: transparent;
+  font-size: 0.74rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.field-link:disabled {
+  opacity: 0.45;
+}
+
+.required {
+  color: var(--red);
+}
+
+/* 蒐集價的 ¥ 前綴 */
+.yen-field {
+  position: relative;
+  display: block;
+}
+
+.yen-field em {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: var(--orange);
+  font-family: "Quicksand", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.yen-field input {
+  width: 100%;
+  padding-left: 32px;
+}
+
+.solid-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* 兩欄並排時，label 內容靠上對齊（店家欄多了一顆連結，不然同列的類別 select 會被撐低） */
+.item-form label {
+  align-content: start;
+}
+
+/* 修既有問題：.import-actions button 的白底蓋掉 .solid-button 的橘底，
+   讓「讀取剪貼簿圖片」變成白字白底看不見 */
+.import-actions .solid-button {
+  color: #fff;
+  background: var(--orange);
+}

@@ -158,7 +158,8 @@ const sampleItems = [
 const state = {
   items: [],
   customStores: [],
-  activeStore: "all",
+  // null = 停在「選擇店家」層(採買中的第一層)。選了店家才進到第二層的清單畫面。
+  activeStore: null,
   activeCategory: "all",
   activeShareMode: "collab",
   view: "grid",
@@ -182,6 +183,9 @@ const screens = {
   import: document.querySelector("#import-screen"),
   shop: document.querySelector("#shop-screen"),
 };
+const backButton = document.querySelector("#back-button");
+const headerTitle = document.querySelector("#header-title");
+const shareToggle = document.querySelector("#share-toggle");
 const itemForm = document.querySelector("#item-form");
 const sourceInput = document.querySelector("#source-input");
 const titleInput = document.querySelector("#title-input");
@@ -200,7 +204,9 @@ const draftList = document.querySelector("#draft-list");
 const draftCount = document.querySelector("#draft-count");
 const resetButton = document.querySelector("#reset-button");
 const storeFilterList = document.querySelector("#store-filters");
+const storeStep = document.querySelector(".store-step");
 const storeInput = document.querySelector("#store-input");
+const formAddStoreButton = document.querySelector("#form-add-store-button");
 const addStoreDialog = document.querySelector("#add-store-dialog");
 const addStoreForm = document.querySelector("#add-store-form");
 const newStoreNameInput = document.querySelector("#new-store-name-input");
@@ -319,6 +325,26 @@ function showMode(mode) {
   Object.entries(screens).forEach(([name, screen]) => {
     screen.classList.toggle("is-active", name === mode);
   });
+  updateHeader();
+}
+
+// header 是三個畫面共用的：返回箭頭＋標題＋(採買清單層才有的)分享 icon。
+function updateHeader() {
+  const inStoreList = document.body.dataset.mode === "shop" && Boolean(state.activeStore);
+
+  headerTitle.textContent =
+    document.body.dataset.mode === "import"
+      ? "匯入整理"
+      : inStoreList
+        ? stores[state.activeStore]
+        : "選擇店家";
+  shareToggle.hidden = !inStoreList;
+  if (!inStoreList) setSharePanel(false);
+}
+
+function setSharePanel(open) {
+  sharePanel.hidden = !open;
+  shareToggle.setAttribute("aria-expanded", String(open));
 }
 
 function escapeHtml(value) {
@@ -514,7 +540,8 @@ function updateStoreCounts() {
 }
 
 function updateCounts() {
-  const scopedItems = getScopedItems();
+  // 還停在選店家層時，進度環顯示整份清單的總進度(不然會是 0/0)。
+  const scopedItems = state.activeStore ? getScopedItems() : state.items;
   const done = scopedItems.filter((item) => item.done).length;
 
   doneCount.textContent = done;
@@ -522,17 +549,17 @@ function updateCounts() {
   progressRing.setAttribute("aria-label", `已買 ${done} 件，共 ${scopedItems.length} 件`);
 }
 
+// 採買中是兩層畫面：沒選店家＝只顯示店家格子；選了店家＝只顯示該店的清單工具與卡片。
 function updateSelectedStore() {
   const hasStore = Boolean(state.activeStore);
   const storeName = stores[state.activeStore] || "尚未選擇";
 
-  selectedStoreCopy.textContent = hasStore
-    ? `目前查看：${storeName}。下方可以搜尋商品、篩選類別，或切換清單/圖卡。`
-    : "選好店家後，下方才會顯示該店的搜尋、篩選與採買卡片。";
+  selectedStoreCopy.textContent = "選好店家後，才會進到那家店的採買清單。";
   listTitle.textContent = hasStore ? `${storeName}商品` : "待買商品";
+  storeStep.hidden = hasStore;
   shopControls.hidden = !hasStore;
-  sharePanel.hidden = !hasStore;
   listSection.hidden = !hasStore;
+  updateHeader();
 }
 
 function updateSharePanel() {
@@ -708,7 +735,6 @@ itemForm.addEventListener("submit", (event) => {
   const item = makeNewItem(formData);
 
   state.items.push(item);
-  state.activeStore = item.store;
   formToast.textContent = `已加入：${item.title}`;
   itemForm.reset();
   activeScreenshot = null;
@@ -723,7 +749,7 @@ itemForm.addEventListener("submit", (event) => {
 resetButton.addEventListener("click", () => {
   if (state.readonly) return;
   state.items = cloneSampleItems();
-  state.activeStore = "all";
+  state.activeStore = null;
   state.activeCategory = "all";
   state.activeShareMode = "collab";
   state.view = "grid";
@@ -882,6 +908,23 @@ modeButtons.forEach((button) => {
   button.addEventListener("click", () => showMode(button.dataset.modeTarget));
 });
 
+// 返回：在店家清單層先退回選店家層，其他情況回首頁。
+backButton.addEventListener("click", () => {
+  if (document.body.dataset.mode === "shop" && state.activeStore) {
+    state.activeStore = null;
+    render();
+    return;
+  }
+  showMode("home");
+});
+
+shareToggle.addEventListener("click", () => setSharePanel(sharePanel.hidden));
+
+formAddStoreButton.addEventListener("click", () => {
+  if (state.readonly) return;
+  openAddStoreDialog();
+});
+
 // 店家按鈕(含自定義店家)是 renderStoreFilters() 動態產生的，用委派監聽器統一處理，
 // 不用每次重繪都重新綁定。
 storeFilterList.addEventListener("click", (event) => {
@@ -918,10 +961,13 @@ addStoreForm.addEventListener("submit", (event) => {
   const id = `custom-${Date.now().toString(36)}`;
   state.customStores.push({ id, name });
   stores[id] = name;
-  state.activeStore = id;
+  // 從匯入表單開的對話框：只把新店家選進表單，不要偷偷換掉採買中的店家。
+  const fromImportForm = document.body.dataset.mode === "import";
+  if (!fromImportForm) state.activeStore = id;
   closeAddStoreDialog();
   saveState();
   render();
+  if (fromImportForm) storeInput.value = id; // render() 會重建 select 選項，所以要在之後設
 });
 
 categoryFilters.forEach((button) => {
